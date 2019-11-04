@@ -8,6 +8,7 @@ import (
 	"github.com/karlmcguire/stress/chanDrop"
 	"github.com/karlmcguire/stress/chanDropSharded"
 	"github.com/karlmcguire/stress/lock"
+	"github.com/karlmcguire/stress/ring"
 	"github.com/karlmcguire/stress/sharded"
 	"github.com/karlmcguire/stress/sync"
 )
@@ -59,6 +60,7 @@ func genBenchmarks() []*Benchmark {
 		{"sharded", sharded.New(numKeys)},
 		{"chanDrop", chanDrop.New(numKeys)},
 		{"chanDropSharded", chanDropSharded.New(numKeys)},
+		{"ring", ring.New(numKeys)},
 	}
 }
 
