@@ -8,8 +8,8 @@ import (
 	"github.com/karlmcguire/stress/chanDrop"
 	"github.com/karlmcguire/stress/chanDropSharded"
 	"github.com/karlmcguire/stress/lock"
+	"github.com/karlmcguire/stress/lockSharded"
 	"github.com/karlmcguire/stress/ring"
-	"github.com/karlmcguire/stress/sharded"
 	"github.com/karlmcguire/stress/sync"
 )
 
@@ -56,10 +56,10 @@ func genPairs() [][2]uint64 {
 func genBenchmarks() []*Benchmark {
 	return []*Benchmark{
 		{"lock", lock.New(numKeys)},
-		{"syncMap", sync.New(numKeys)},
-		{"sharded", sharded.New(numKeys)},
+		{"lockSharded", lockSharded.New(numKeys)},
 		{"chanDrop", chanDrop.New(numKeys)},
 		{"chanDropSharded", chanDropSharded.New(numKeys)},
+		{"syncMap", sync.New(numKeys)},
 		{"ring", ring.New(numKeys)},
 	}
 }

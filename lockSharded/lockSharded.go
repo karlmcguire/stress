@@ -1,4 +1,4 @@
-package sharded
+package lockSharded
 
 import "sync"
 
