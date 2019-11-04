@@ -5,12 +5,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/karlmcguire/stress/chanDrop"
-	"github.com/karlmcguire/stress/chanDropSharded"
-	"github.com/karlmcguire/stress/lock"
-	"github.com/karlmcguire/stress/lockSharded"
-	"github.com/karlmcguire/stress/ring"
-	"github.com/karlmcguire/stress/sync"
+	"github.com/karlmcguire/stress/syncChanDropSharded"
 )
 
 const (
@@ -34,8 +29,6 @@ type (
 	}
 )
 
-var keys = genKeys()
-
 func genKeys() [numKeys]uint64 {
 	var keys [numKeys]uint64
 	for i := range keys {
@@ -55,12 +48,15 @@ func genPairs() [][2]uint64 {
 
 func genBenchmarks() []*Benchmark {
 	return []*Benchmark{
-		{"lock", lock.New(numKeys)},
-		{"lockSharded", lockSharded.New(numKeys)},
-		{"chanDrop", chanDrop.New(numKeys)},
-		{"chanDropSharded", chanDropSharded.New(numKeys)},
-		{"syncMap", sync.New(numKeys)},
-		{"ring", ring.New(numKeys)},
+		/*
+			{"lock", lock.New(numKeys)},
+			{"lockSharded", lockSharded.New(numKeys)},
+			{"chanDrop", chanDrop.New(numKeys)},
+			{"chanDropSharded", chanDropSharded.New(numKeys)},
+			{"sync", sync.New(numKeys)},
+		*/
+		{"syncChanDropSharded", syncChanDropSharded.New(numKeys)},
+		//{"ring", ring.New(numKeys)},
 	}
 }
 
