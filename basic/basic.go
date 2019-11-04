@@ -28,8 +28,8 @@ func (m *Map) Set(key, val uint64) {
 
 func (m *Map) SetAll(pairs [][2]uint64) {
 	m.Lock()
-	for i := range pairs {
-		m.data[pairs[i][0]] = pairs[i][1]
+	for _, pair := range pairs {
+		m.data[pair[0]] = pair[1]
 	}
 	m.Unlock()
 }

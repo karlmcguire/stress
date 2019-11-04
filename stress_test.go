@@ -5,7 +5,8 @@ import (
 	"testing"
 
 	"github.com/karlmcguire/stress/basic"
-	"github.com/karlmcguire/stress/syncMap"
+	"github.com/karlmcguire/stress/sharded"
+	"github.com/karlmcguire/stress/sync"
 )
 
 const (
@@ -39,13 +40,13 @@ func genKeys() [numKeys]uint64 {
 func genBenchmarks() []*Benchmark {
 	return []*Benchmark{
 		{"basic", basic.New(numKeys)},
-		{"sync.Map", syncMap.New(numKeys)},
+		{"sync.Map", sync.New(numKeys)},
+		{"sharded", sharded.New(numKeys)},
 	}
 }
 
-func BenchmarkMaps(b *testing.B) {
+func BenchmarkSet(b *testing.B) {
 	keys, benchmarks := genKeys(), genBenchmarks()
-
 	for _, benchmark := range benchmarks {
 		b.Run(benchmark.Name, func(b *testing.B) {
 			b.SetBytes(1)
