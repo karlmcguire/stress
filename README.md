@@ -18,4 +18,11 @@ BenchmarkSetAll/chanDrop-12               200000       11799 ns/op    84.75 MB/s
 BenchmarkSetAll/chanDropSharded-12        100000       14825 ns/op    67.45 MB/s
 BenchmarkSetAll/syncMap-12                 10000      154386 ns/op     6.48 MB/s
 BenchmarkSetAll/ring-12                   100000       11670 ns/op    85.69 MB/s
+
+BenchmarkGet/lock-12                    30000000        41.0 ns/op    24.37 MB/s
+BenchmarkGet/lockSharded-12            200000000        6.74 ns/op   148.31 MB/s
+BenchmarkGet/chanDrop-12                10000000         119 ns/op     8.40 MB/s
+BenchmarkGet/chanDropSharded-12        200000000        6.80 ns/op   147.17 MB/s
+BenchmarkGet/syncMap-12                200000000        6.08 ns/op   164.45 MB/s
+BenchmarkGet/ring-12                    30000000        43.5 ns/op    22.99 MB/s
 ```

@@ -64,6 +64,24 @@ func genBenchmarks() []*Benchmark {
 	}
 }
 
+func BenchmarkGet(b *testing.B) {
+	keys, benchmarks := genKeys(), genBenchmarks()
+	for _, benchmark := range benchmarks {
+		for _, key := range keys {
+			benchmark.Map.Set(key, key)
+		}
+		b.Run(benchmark.Name, func(b *testing.B) {
+			b.SetBytes(1)
+			b.ResetTimer()
+			b.RunParallel(func(pb *testing.PB) {
+				for i := rand.Int() & keyMask; pb.Next(); i++ {
+					benchmark.Map.Get(keys[i&keyMask])
+				}
+			})
+		})
+	}
+}
+
 func BenchmarkSet(b *testing.B) {
 	keys, benchmarks := genKeys(), genBenchmarks()
 	for _, benchmark := range benchmarks {
