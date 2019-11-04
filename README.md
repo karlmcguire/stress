@@ -1,6 +1,9 @@
 # stress
+
 Stress testing hashmap implemenations.
 
+
+## Results
 ```
 goos: linux
 goarch: amd64
@@ -26,3 +29,37 @@ BenchmarkGet/chanDropSharded-12        200000000        6.80 ns/op   147.17 MB/s
 BenchmarkGet/syncMap-12                200000000        6.08 ns/op   164.45 MB/s
 BenchmarkGet/ring-12                    30000000        43.5 ns/op    22.99 MB/s
 ```
+
+## Ranked
+
+### 1. chanDropSharded
+
+```
+BenchmarkSet/chanDropSharded-12        500000000        2.52 ns/op   396.79 MB/s
+BenchmarkSetAll/chanDropSharded-12        100000       14825 ns/op    67.45 MB/s
+BenchmarkGet/chanDropSharded-12        200000000        6.80 ns/op   147.17 MB/s
+```
+
+### 2. chanDrop
+
+```
+BenchmarkSet/chanDrop-12               500000000        3.26 ns/op   306.48 MB/s
+BenchmarkSetAll/chanDrop-12               200000       11799 ns/op    84.75 MB/s
+BenchmarkGet/chanDrop-12                10000000         119 ns/op     8.40 MB/s
+```
+
+---
+
+**chanDropSharded** outperforms **chanDrop** on every benchmark except `SetAll`,
+this is because of the overhead required to select a shard for every `Set` call:
+
+```go
+func (m *Map) SetAll(pairs [][2]uint64) {
+	for _, pair := range pairs {
+		m.shards[pair[0]&shardMask].Set(pair[0], pair[1])
+	}
+}
+```
+
+However, this overhead is acceptable because **chanDropSharded** has over 10x
+better performance for `Get` operations, due to the lowered contention.
