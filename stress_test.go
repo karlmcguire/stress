@@ -2,9 +2,12 @@ package stress
 
 import (
 	"math/rand"
+	"runtime"
 	"testing"
 
-	"github.com/karlmcguire/stress/basic"
+	"github.com/karlmcguire/stress/chanDrop"
+	"github.com/karlmcguire/stress/chanDropSharded"
+	"github.com/karlmcguire/stress/lock"
 	"github.com/karlmcguire/stress/sharded"
 	"github.com/karlmcguire/stress/sync"
 )
@@ -14,6 +17,7 @@ const (
 	keyMask       = numKeys - 1
 	numGoroutines = 8
 	segSize       = numKeys / numGoroutines
+	batchSize     = 1e3
 )
 
 type (
@@ -29,6 +33,8 @@ type (
 	}
 )
 
+var keys = genKeys()
+
 func genKeys() [numKeys]uint64 {
 	var keys [numKeys]uint64
 	for i := range keys {
@@ -37,11 +43,22 @@ func genKeys() [numKeys]uint64 {
 	return keys
 }
 
+func genPairs() [][2]uint64 {
+	keys := genKeys()
+	pairs := make([][2]uint64, batchSize)
+	for i := range pairs {
+		pairs[i] = [2]uint64{keys[i], keys[i]}
+	}
+	return pairs
+}
+
 func genBenchmarks() []*Benchmark {
 	return []*Benchmark{
-		{"basic", basic.New(numKeys)},
-		{"sync.Map", sync.New(numKeys)},
+		{"lock", lock.New(numKeys)},
+		{"syncMap", sync.New(numKeys)},
 		{"sharded", sharded.New(numKeys)},
+		{"chanDrop", chanDrop.New(numKeys)},
+		{"chanDropSharded", chanDropSharded.New(numKeys)},
 	}
 }
 
@@ -57,5 +74,22 @@ func BenchmarkSet(b *testing.B) {
 				}
 			})
 		})
+		runtime.GC()
+	}
+}
+
+func BenchmarkSetAll(b *testing.B) {
+	pairs, benchmarks := genPairs(), genBenchmarks()
+	for _, benchmark := range benchmarks {
+		b.Run(benchmark.Name, func(b *testing.B) {
+			b.SetBytes(batchSize)
+			b.ResetTimer()
+			b.RunParallel(func(pb *testing.PB) {
+				for pb.Next() {
+					benchmark.Map.SetAll(pairs)
+				}
+			})
+		})
+		runtime.GC()
 	}
 }
