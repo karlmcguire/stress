@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/karlmcguire/stress/basic"
+	"github.com/karlmcguire/stress/syncMap"
 )
 
 const (
@@ -38,6 +39,7 @@ func genKeys() [numKeys]uint64 {
 func genBenchmarks() []*Benchmark {
 	return []*Benchmark{
 		{"basic", basic.New(numKeys)},
+		{"sync.Map", syncMap.New(numKeys)},
 	}
 }
 
