@@ -10,6 +10,7 @@ import (
 	"github.com/karlmcguire/stress/lock"
 	"github.com/karlmcguire/stress/lockSharded"
 	"github.com/karlmcguire/stress/ring"
+	"github.com/karlmcguire/stress/ringChanDropSharded"
 	"github.com/karlmcguire/stress/sync"
 	"github.com/karlmcguire/stress/syncChanDropSharded"
 )
@@ -61,6 +62,7 @@ func genBenchmarks() []*Benchmark {
 		{"sync", sync.New(numKeys)},
 		{"syncChanDropSharded", syncChanDropSharded.New(numKeys)},
 		{"ring", ring.New(numKeys)},
+		{"ringChanDropSharded", ringChanDropSharded.New(numKeys)},
 	}
 }
 
