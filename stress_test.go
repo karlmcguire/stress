@@ -3,6 +3,7 @@ package stress
 import (
 	"math/rand"
 	"runtime"
+	"sync/atomic"
 	"testing"
 
 	"github.com/karlmcguire/stress/chanDrop"
@@ -63,6 +64,29 @@ func genBenchmarks() []*Benchmark {
 		{"syncChanDropSharded", syncChanDropSharded.New(numKeys)},
 		{"ring", ring.New(numKeys)},
 		{"ringChanDropSharded", ringChanDropSharded.New(numKeys)},
+	}
+}
+
+func BenchmarkMixed(b *testing.B) {
+	keys, benchmarks := genKeys(), genBenchmarks()
+	for _, benchmark := range benchmarks {
+		rc := uint64(0)
+		b.Run(benchmark.Name, func(b *testing.B) {
+			b.SetBytes(1)
+			b.ResetTimer()
+			b.RunParallel(func(pb *testing.PB) {
+				mc := atomic.AddUint64(&rc, 1)
+				if 25*mc/100 != 25*(mc-1)/100 {
+					for i := rand.Int(); pb.Next(); i++ {
+						benchmark.Map.Set(keys[i&keyMask], uint64(0))
+					}
+				} else {
+					for i := rand.Int(); pb.Next(); i++ {
+						benchmark.Map.Get(keys[i&keyMask])
+					}
+				}
+			})
+		})
 	}
 }
 
