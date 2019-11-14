@@ -8,6 +8,7 @@ import (
 	"testing"
 	"unsafe"
 
+	sim "github.com/dgraph-io/ristretto/sim"
 	"github.com/karlmcguire/stress/chanDropSharded"
 	"github.com/karlmcguire/stress/lock"
 	"github.com/karlmcguire/stress/lockSharded"
@@ -34,6 +35,15 @@ type (
 		Map  Map
 	}
 )
+
+func genKeysZipf() [numKeys]uint64 {
+	var keys [numKeys]uint64
+	zipf := sim.NewZipfian(1.5, 2, numKeys)
+	for i := range keys {
+		keys[i], _ = zipf()
+	}
+	return keys
+}
 
 func genKeys() [numKeys]uint64 {
 	var keys [numKeys]uint64
@@ -86,7 +96,7 @@ func BenchmarkTesting(b *testing.B) {
 }
 
 func BenchmarkMixed(b *testing.B) {
-	benchmarks := genBenchmarks()
+	keys, benchmarks := genKeysZipf(), genBenchmarks()
 	for _, benchmark := range benchmarks {
 		rc := uint64(0)
 		b.Run(benchmark.Name, func(b *testing.B) {
@@ -95,12 +105,12 @@ func BenchmarkMixed(b *testing.B) {
 			b.RunParallel(func(pb *testing.PB) {
 				mc := atomic.AddUint64(&rc, 1)
 				if 50*mc/100 != 50*(mc-1)/100 {
-					for pb.Next() {
-						benchmark.Map.Set(uint64(FastRand()), 0)
+					for i := rand.Int(); pb.Next(); i++ {
+						benchmark.Map.Set(keys[i&keyMask], 0)
 					}
 				} else {
-					for pb.Next() {
-						benchmark.Map.Get(uint64(FastRand()))
+					for i := rand.Int(); pb.Next(); i++ {
+						benchmark.Map.Get(keys[i&keyMask])
 					}
 				}
 			})
@@ -109,7 +119,7 @@ func BenchmarkMixed(b *testing.B) {
 }
 
 func BenchmarkGet(b *testing.B) {
-	keys, benchmarks := genKeys(), genBenchmarks()
+	keys, benchmarks := genKeysZipf(), genBenchmarks()
 	for _, benchmark := range benchmarks {
 		for _, key := range keys {
 			benchmark.Map.Set(key, key)
@@ -127,14 +137,14 @@ func BenchmarkGet(b *testing.B) {
 }
 
 func BenchmarkSet(b *testing.B) {
-	benchmarks := genBenchmarks()
+	keys, benchmarks := genKeysZipf(), genBenchmarks()
 	for _, benchmark := range benchmarks {
 		b.Run(benchmark.Name, func(b *testing.B) {
 			b.SetBytes(1)
 			b.ResetTimer()
 			b.RunParallel(func(pb *testing.PB) {
-				for pb.Next() {
-					benchmark.Map.Set(uint64(FastRand()), 0)
+				for i := rand.Int(); pb.Next(); i++ {
+					benchmark.Map.Set(keys[i&keyMask], 0)
 				}
 			})
 		})
