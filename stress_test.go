@@ -1,6 +1,7 @@
 package stress
 
 import (
+	"fmt"
 	"math/rand"
 	"runtime"
 	"sync/atomic"
@@ -67,6 +68,22 @@ func genBenchmarks() []*Benchmark {
 	}
 }
 
+func BenchmarkTesting(b *testing.B) {
+	rc := uint64(0)
+	sets, gets := uint64(0), uint64(0)
+	b.RunParallel(func(pb *testing.PB) {
+		mc := atomic.AddUint64(&rc, 1)
+		for pb.Next() {
+			if 25*mc/100 != 25*(mc-1)/100 {
+				atomic.AddUint64(&sets, 1)
+			} else {
+				atomic.AddUint64(&gets, 1)
+			}
+		}
+	})
+	fmt.Printf("%0.2f%% writes\n", float64(sets)/(float64(sets)+float64(gets)))
+}
+
 func BenchmarkMixed(b *testing.B) {
 	keys, benchmarks := genKeys(), genBenchmarks()
 	for _, benchmark := range benchmarks {
@@ -76,7 +93,7 @@ func BenchmarkMixed(b *testing.B) {
 			b.ResetTimer()
 			b.RunParallel(func(pb *testing.PB) {
 				mc := atomic.AddUint64(&rc, 1)
-				if 25*mc/100 != 25*(mc-1)/100 {
+				if 50*mc/100 != 50*(mc-1)/100 {
 					for i := rand.Int(); pb.Next(); i++ {
 						benchmark.Map.Set(keys[i&keyMask], uint64(0))
 					}
