@@ -6,15 +6,12 @@ import (
 	"runtime"
 	"sync/atomic"
 	"testing"
+	"unsafe"
 
-	"github.com/karlmcguire/stress/chanDrop"
 	"github.com/karlmcguire/stress/chanDropSharded"
 	"github.com/karlmcguire/stress/lock"
 	"github.com/karlmcguire/stress/lockSharded"
-	"github.com/karlmcguire/stress/ring"
-	"github.com/karlmcguire/stress/ringChanDropSharded"
 	"github.com/karlmcguire/stress/sync"
-	"github.com/karlmcguire/stress/syncChanDropSharded"
 )
 
 const (
@@ -57,19 +54,23 @@ func genPairs() [][2]uint64 {
 
 func genBenchmarks() []*Benchmark {
 	return []*Benchmark{
+		{"sync", sync.New(numKeys)},
 		{"lock", lock.New(numKeys)},
 		{"lockSharded", lockSharded.New(numKeys)},
-		{"chanDrop", chanDrop.New(numKeys)},
+		//{"chanDrop", chanDrop.New(numKeys)},
 		{"chanDropSharded", chanDropSharded.New(numKeys)},
-		{"sync", sync.New(numKeys)},
-		{"syncChanDropSharded", syncChanDropSharded.New(numKeys)},
-		{"ring", ring.New(numKeys)},
-		{"ringChanDropSharded", ringChanDropSharded.New(numKeys)},
+		//{"syncChanDropSharded", syncChanDropSharded.New(numKeys)},
+		//{"ring", ring.New(numKeys)},
+		//{"ringChanDropSharded", ringChanDropSharded.New(numKeys)},
 	}
 }
 
+//go:linkname FastRand runtime.fastrand
+func FastRand() uint32
+
 func BenchmarkTesting(b *testing.B) {
 	rc := uint64(0)
+	_ = unsafe.Pointer(&rc)
 	sets, gets := uint64(0), uint64(0)
 	b.RunParallel(func(pb *testing.PB) {
 		mc := atomic.AddUint64(&rc, 1)
@@ -85,7 +86,7 @@ func BenchmarkTesting(b *testing.B) {
 }
 
 func BenchmarkMixed(b *testing.B) {
-	keys, benchmarks := genKeys(), genBenchmarks()
+	benchmarks := genBenchmarks()
 	for _, benchmark := range benchmarks {
 		rc := uint64(0)
 		b.Run(benchmark.Name, func(b *testing.B) {
@@ -94,12 +95,12 @@ func BenchmarkMixed(b *testing.B) {
 			b.RunParallel(func(pb *testing.PB) {
 				mc := atomic.AddUint64(&rc, 1)
 				if 50*mc/100 != 50*(mc-1)/100 {
-					for i := rand.Int(); pb.Next(); i++ {
-						benchmark.Map.Set(keys[i&keyMask], uint64(0))
+					for pb.Next() {
+						benchmark.Map.Set(uint64(FastRand()), 0)
 					}
 				} else {
-					for i := rand.Int(); pb.Next(); i++ {
-						benchmark.Map.Get(keys[i&keyMask])
+					for pb.Next() {
+						benchmark.Map.Get(uint64(FastRand()))
 					}
 				}
 			})
@@ -126,14 +127,14 @@ func BenchmarkGet(b *testing.B) {
 }
 
 func BenchmarkSet(b *testing.B) {
-	keys, benchmarks := genKeys(), genBenchmarks()
+	benchmarks := genBenchmarks()
 	for _, benchmark := range benchmarks {
 		b.Run(benchmark.Name, func(b *testing.B) {
 			b.SetBytes(1)
 			b.ResetTimer()
 			b.RunParallel(func(pb *testing.PB) {
-				for i := rand.Int() & keyMask; pb.Next(); i++ {
-					benchmark.Map.Set(keys[i&keyMask], keys[i&keyMask])
+				for pb.Next() {
+					benchmark.Map.Set(uint64(FastRand()), 0)
 				}
 			})
 		})
@@ -141,6 +142,7 @@ func BenchmarkSet(b *testing.B) {
 	}
 }
 
+/*
 func BenchmarkSetAll(b *testing.B) {
 	pairs, benchmarks := genPairs(), genBenchmarks()
 	for _, benchmark := range benchmarks {
@@ -149,10 +151,11 @@ func BenchmarkSetAll(b *testing.B) {
 			b.ResetTimer()
 			b.RunParallel(func(pb *testing.PB) {
 				for pb.Next() {
-					benchmark.Map.SetAll(pairs)
+					benchmark.Map.SetAll(0)
 				}
 			})
 		})
 		runtime.GC()
 	}
 }
+*/

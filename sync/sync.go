@@ -13,8 +13,8 @@ func New(size uint64) *Map {
 }
 
 func (m *Map) Get(key uint64) uint64 {
-	val, _ := m.data.Load(key)
-	if val == nil {
+	val, ok := m.data.Load(key)
+	if val == nil || !ok {
 		return 0
 	}
 	return val.(uint64)
