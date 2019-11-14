@@ -36,16 +36,15 @@ type (
 	}
 )
 
-func genKeysZipf() [numKeys]uint64 {
-	var keys [numKeys]uint64
-	zipf := sim.NewZipfian(1.5, 2, numKeys)
-	for i := range keys {
-		keys[i], _ = zipf()
+func genKeys(zipf bool) [numKeys]uint64 {
+	if zipf {
+		var keys [numKeys]uint64
+		zipf := sim.NewZipfian(1.5, 2, numKeys)
+		for i := range keys {
+			keys[i], _ = zipf()
+		}
+		return keys
 	}
-	return keys
-}
-
-func genKeys() [numKeys]uint64 {
 	var keys [numKeys]uint64
 	for i := range keys {
 		keys[i] = rand.Uint64() % numKeys
@@ -54,7 +53,7 @@ func genKeys() [numKeys]uint64 {
 }
 
 func genPairs() [][2]uint64 {
-	keys := genKeys()
+	keys := genKeys(false)
 	pairs := make([][2]uint64, batchSize)
 	for i := range pairs {
 		pairs[i] = [2]uint64{keys[i], keys[i]}
@@ -96,7 +95,7 @@ func BenchmarkTesting(b *testing.B) {
 }
 
 func BenchmarkMixed(b *testing.B) {
-	keys, benchmarks := genKeysZipf(), genBenchmarks()
+	keys, benchmarks := genKeys(true), genBenchmarks()
 	for _, benchmark := range benchmarks {
 		rc := uint64(0)
 		b.Run(benchmark.Name, func(b *testing.B) {
@@ -119,7 +118,7 @@ func BenchmarkMixed(b *testing.B) {
 }
 
 func BenchmarkGet(b *testing.B) {
-	keys, benchmarks := genKeysZipf(), genBenchmarks()
+	keys, benchmarks := genKeys(true), genBenchmarks()
 	for _, benchmark := range benchmarks {
 		for _, key := range keys {
 			benchmark.Map.Set(key, key)
@@ -137,7 +136,7 @@ func BenchmarkGet(b *testing.B) {
 }
 
 func BenchmarkSet(b *testing.B) {
-	keys, benchmarks := genKeysZipf(), genBenchmarks()
+	keys, benchmarks := genKeys(true), genBenchmarks()
 	for _, benchmark := range benchmarks {
 		b.Run(benchmark.Name, func(b *testing.B) {
 			b.SetBytes(1)
