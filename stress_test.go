@@ -10,6 +10,7 @@ import (
 
 	sim "github.com/dgraph-io/ristretto/sim"
 	"github.com/karlmcguire/stress/chanDropSharded"
+	"github.com/karlmcguire/stress/chanDropSlices"
 	"github.com/karlmcguire/stress/lock"
 	"github.com/karlmcguire/stress/lockSharded"
 	"github.com/karlmcguire/stress/sync"
@@ -68,6 +69,7 @@ func genBenchmarks() []*Benchmark {
 		{"lockSharded", lockSharded.New(numKeys)},
 		//{"chanDrop", chanDrop.New(numKeys)},
 		{"chanDropSharded", chanDropSharded.New(numKeys)},
+		{"chanDropSlices", chanDropSlices.New(numKeys)},
 		//{"syncChanDropSharded", syncChanDropSharded.New(numKeys)},
 		//{"ring", ring.New(numKeys)},
 		//{"ringChanDropSharded", ringChanDropSharded.New(numKeys)},
@@ -151,7 +153,6 @@ func BenchmarkSet(b *testing.B) {
 	}
 }
 
-/*
 func BenchmarkSetAll(b *testing.B) {
 	pairs, benchmarks := genPairs(), genBenchmarks()
 	for _, benchmark := range benchmarks {
@@ -160,11 +161,10 @@ func BenchmarkSetAll(b *testing.B) {
 			b.ResetTimer()
 			b.RunParallel(func(pb *testing.PB) {
 				for pb.Next() {
-					benchmark.Map.SetAll(0)
+					benchmark.Map.SetAll(pairs)
 				}
 			})
 		})
 		runtime.GC()
 	}
 }
-*/
